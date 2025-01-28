@@ -15,7 +15,7 @@
     {
       "matches": ["*://*.chess.com/*"],
       "css": ["styles/content.css"],
-      "js": ["content.js"]
+      "js": ["js/content.js"]
     }
   ],
   "action": {
@@ -31,6 +31,6 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   }
 } 

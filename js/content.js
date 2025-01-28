@@ -1,9 +1,7 @@
 class ChessAnalyzer {
   constructor() {
     this.popup = null;
-    this.currentOpponent = null;
-    this.logs = [];
-    this.addLog('ChessAnalyzer initialized');
+    this.currentOpponent = null;    
     this.init();
     
     // Listen for extension button click
@@ -85,11 +83,17 @@ class ChessAnalyzer {
         <div class="metrics-grid-row2">
           <div class="metric-card-alt">
             <div class="metric-value precision">-</div>
-            <div class="metric-label">Precision</div>
+            <div class="metric-label">
+              Precision
+              <div class="metric-sublabel">(last 20 games)</div>
+            </div>
           </div>
           <div class="metric-card-alt">
             <div class="metric-value avg-time">-</div>
-            <div class="metric-label">Avg Move Time</div>
+            <div class="metric-label">
+              Avg Move Time
+              <div class="metric-sublabel">(last 20 games)</div>
+            </div>
           </div>
         </div>
         <div class="stats-row">
@@ -138,20 +142,28 @@ class ChessAnalyzer {
 
   observeGameStart() {
     const observer = new MutationObserver(() => {
-        const playerElements = document.querySelectorAll('.user-tagline-username');
-        if (playerElements.length === 2) {
-            // Get the username from the URL
-            const urlUsername = window.location.href.split('username=')[1]?.split('&')[0];
-            // If the first player matches URL username, second is opponent
-            const opponentUsername = playerElements[0].textContent.trim() === urlUsername ? 
-                playerElements[1].textContent.trim() : 
-                playerElements[0].textContent.trim();
-            
-            if (opponentUsername !== this.currentOpponent) {
-                this.currentOpponent = opponentUsername;
-                this.fetchOpponentData(opponentUsername);
+        // Add a small delay to ensure DOM is stable
+        setTimeout(() => {
+            const playerElements = document.querySelectorAll('.user-tagline-username');
+            if (playerElements.length === 2) {
+                // Get the username from the URL
+                const urlUsername = window.location.href.split('username=')[1]?.split('&')[0];
+                
+                // Get both usernames
+                const player1 = playerElements[0].textContent.trim();
+                const player2 = playerElements[1].textContent.trim();
+                
+                // Only proceed if we have valid usernames
+                if (player1 && player2 && player1 !== 'Opponent' && player2 !== 'Opponent') {
+                    const opponentUsername = player1 === urlUsername ? player2 : player1;
+                    
+                    if (opponentUsername !== this.currentOpponent) {
+                        this.currentOpponent = opponentUsername;
+                        this.fetchOpponentData(opponentUsername);
+                    }
+                }
             }
-        }
+        }, 500); // 500ms delay
     });
 
     observer.observe(document.body, {
@@ -185,12 +197,6 @@ class ChessAnalyzer {
       
       const allGames = [...currentMonthGames, ...prevMonthGames];
       
-      this.addLog('Fetched games data', {
-        currentMonthCount: currentMonthGames.length,
-        prevMonthCount: prevMonthGames.length,
-        totalGames: allGames.length
-      });
-
       const stats = {
         games: allGames,
         chess_rapid: statsData.chess_rapid || {},
@@ -201,7 +207,6 @@ class ChessAnalyzer {
       this.updatePopup(profile, stats);
     } catch (error) {
       console.error('Error fetching opponent data:', error);
-      this.addLog('Error fetching data', { error: error.message });
       const popup = this.popup;
       popup.querySelector('.username').textContent = 'Error loading data';
       popup.querySelector('.join-date').textContent = 'Please try again later';
@@ -253,23 +258,13 @@ class ChessAnalyzer {
       games: stats.games || [],
       username: this.currentOpponent
     }, response => {
-      this.addLog('Sent message to background:', {
-        type: 'calculateStats',
-        gamesCount: stats.games?.length,
-        username: this.currentOpponent
-      });
-      
       if (chrome.runtime.lastError) {
-        this.addLog('Chrome runtime error:', chrome.runtime.lastError);
         return;
       }
 
       if (response) {
-        this.addLog('Received response from background:', response);
         popup.querySelector('.precision').textContent = response.precision === '-' ? '-' : `${response.precision}%`;
         popup.querySelector('.avg-time').textContent = response.avgMoveTime === '-' ? '-' : `${response.avgMoveTime}s`;
-      } else {
-        this.addLog('No response received from background');
       }
     });
     
@@ -333,46 +328,7 @@ class ChessAnalyzer {
     if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo ago`;
     return `${Math.floor(diff / 31536000)}y ago`;
   }
-
-  addLog(message, data = null) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      message,
-      data: data ? JSON.stringify(data, null, 2) : null
-    };
-    
-    this.logs.push(logEntry);
-    console.debug(`[${timestamp}] ${message}`, data || '');
-    
-    // Create download link if it doesn't exist
-    if (!document.getElementById('chess-analyzer-log')) {
-      const downloadLink = document.createElement('a');
-      downloadLink.id = 'chess-analyzer-log';
-      downloadLink.style.display = 'none';
-      document.body.appendChild(downloadLink);
-    }
-    
-    // Update download link with latest logs
-    const blob = new Blob([this.logs.map(log => 
-      `[${log.timestamp}] ${log.message}\n${log.data ? log.data + '\n' : ''}`
-    ).join('\n')], {type: 'text/plain'});
-    
-    const downloadLink = document.getElementById('chess-analyzer-log');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = 'chess-analyzer-debug.log';
-  }
 }
 
 // Initialize the analyzer
 new ChessAnalyzer();
-
-// Add this right after the ChessAnalyzer class definition
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'debugLog') {
-    const analyzer = window.chessAnalyzer;
-    if (analyzer) {
-      analyzer.addLog('Move Time Debug Log', message.data);
-    }
-  }
-}); 

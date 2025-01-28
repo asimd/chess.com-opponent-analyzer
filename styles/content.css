@@ -247,3 +247,55 @@ span#username {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   z-index: 9999;
 }
+
+.metric-sublabel {
+  font-size: 8px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.warning-banner {
+  margin: 0 16px 16px;
+  padding: 12px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.warning-icon {
+  font-size: 20px;
+  color: #dc2626;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.warning-reasons {
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.warning-reason-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.warning-reason-bullet {
+  color: #dc2626;
+}
