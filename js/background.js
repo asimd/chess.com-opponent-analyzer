@@ -91,8 +91,9 @@ function calculatePrecision(games, username) {
   return Math.round(totalAccuracy / count);
 }
 
-chrome.action.onClicked.addListener((tab) => {
-  if (tab.url.includes("chess.com")) {
-    chrome.tabs.sendMessage(tab.id, { action: "togglePopup" });
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "goToChess") {
+    chrome.tabs.create({ url: 'https://chess.com/play' });
   }
 }); 
