@@ -7,12 +7,11 @@
     "activeTab"
   ],
   "host_permissions": [
-    "*://*.chess.com/*",
-    "<all_urls>"
+    "https://*.chess.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.chess.com/*"],
+      "matches": ["https://*.chess.com/*"],
       "css": ["styles/content.css"],
       "js": ["js/content.js"]
     }
