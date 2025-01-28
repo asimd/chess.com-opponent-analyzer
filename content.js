@@ -76,11 +76,6 @@ class ChessAnalyzer {
         </div>
         <div class="stats-row">
           <div class="stat-item">
-            <div class="stat-icon">👥</div>
-            <div class="stat-value friends-count">-</div>
-            <div class="stat-label">Friends</div>
-          </div>
-          <div class="stat-item">
             <div class="stat-icon">👤</div>
             <div class="stat-value followers-count">-</div>
             <div class="stat-label">Followers</div>
@@ -93,7 +88,7 @@ class ChessAnalyzer {
           <div class="stat-item">
             <div class="stat-icon">⏰</div>
             <div class="stat-value last-online">-</div>
-            <div class="stat-label">Last Online</div>
+            <div class="stat-label">Last Activity</div>
           </div>
         </div>
       </div>
@@ -261,9 +256,9 @@ class ChessAnalyzer {
     });
     
     popup.querySelector('.join-date').textContent = this.formatJoinDate(profile.joined);
-    popup.querySelector('.friends-count').textContent = '-';
     popup.querySelector('.followers-count').textContent = profile.followers || 0;
     popup.querySelector('.league-rank').textContent = profile.league || '-';
+    popup.querySelector('.last-online').textContent = this.formatLastOnline(profile.last_online);
   }
 
   showPopup() {
@@ -293,7 +288,6 @@ class ChessAnalyzer {
     recordStats.forEach(stat => stat.textContent = '0');
     
     // Clear social stats
-    popup.querySelector('.friends-count').textContent = '-';
     popup.querySelector('.followers-count').textContent = '-';
     popup.querySelector('.league-rank').textContent = '-';
     popup.querySelector('.last-online').textContent = '-';
@@ -306,6 +300,20 @@ class ChessAnalyzer {
     const diff = Math.floor((now - joinDate) / (1000 * 60 * 60 * 24)); // days difference
     
     return `Joined ${diff} days ago - ${joinDate.toLocaleDateString()}`;
+  }
+
+  formatLastOnline(timestamp) {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo ago`;
+    return `${Math.floor(diff / 31536000)}y ago`;
   }
 
   addLog(message, data = null) {
