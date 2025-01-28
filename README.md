@@ -1,6 +1,6 @@
 # Chess.com Opponent Analyzer
 
-<img width="356" alt="image" src="https://github.com/user-attachments/assets/fc52d51e-2b63-4134-b18b-e4adb937f9df" />
+![image](https://github.com/user-attachments/assets/8717b009-e6aa-4649-a7dd-4b07e765377e)
 
 A Chrome extension that provides instant analysis of your opponent's statistics during Chess.com games. Get valuable insights about your opponent's playing style, ratings, and performance metrics.
 
