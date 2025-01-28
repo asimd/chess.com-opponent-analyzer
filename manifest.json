@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Chess.com Analyzer",
+  "version": "1.0",
+  "description": "Analyzes opponent data on Chess.com matches",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.chess.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.chess.com/*"],
+      "css": ["styles/content.css"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+} 
