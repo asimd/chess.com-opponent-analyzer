@@ -34,31 +34,42 @@ class ChessAnalyzer {
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="rating-container">
-                <div class="metric-value blitz-rating">-</div>
+              <div class="metric-value blitz-rating">-</div>
             </div>
             <div class="metric-label">Blitz Rating</div>
             <div class="record-stats">
-                <span class="win">0</span>
-                <span class="draw">0</span>
-                <span class="loss">0</span>
+              <span class="win">0</span>
+              <span class="draw">0</span>
+              <span class="loss">0</span>
             </div>
           </div>
           <div class="metric-card">
             <div class="rating-container">
-                <div class="metric-value rapid-rating">-</div>
+              <div class="metric-value rapid-rating">-</div>
             </div>
             <div class="metric-label">Rapid Rating</div>
             <div class="record-stats">
-                <span class="win">0</span>
-                <span class="draw">0</span>
-                <span class="loss">0</span>
+              <span class="win">0</span>
+              <span class="draw">0</span>
+              <span class="loss">0</span>
             </div>
           </div>
           <div class="metric-card">
+            <div class="metric-value bullet-rating">-</div>
+            <div class="metric-label">Bullet Rating</div>
+            <div class="record-stats">
+              <span class="win">0</span>
+              <span class="draw">0</span>
+              <span class="loss">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="metrics-grid-row2">
+          <div class="metric-card-alt">
             <div class="metric-value precision">-</div>
             <div class="metric-label">Precision</div>
           </div>
-          <div class="metric-card">
+          <div class="metric-card-alt">
             <div class="metric-value avg-time">-</div>
             <div class="metric-label">Avg Move Time</div>
           </div>
@@ -215,6 +226,14 @@ class ChessAnalyzer {
     rapidRecordStats[1].textContent = rapidStats?.record?.draw || '0';
     rapidRecordStats[2].textContent = rapidStats?.record?.loss || '0';
     
+    // Update Bullet stats
+    const bulletStats = stats?.chess_bullet || stats?.bullet || {};
+    popup.querySelector('.bullet-rating').textContent = bulletStats?.last?.rating || '-';
+    const bulletRecordStats = popup.querySelectorAll('.metric-card')[2].querySelectorAll('.record-stats span');
+    bulletRecordStats[0].textContent = bulletStats?.record?.win || '0';
+    bulletRecordStats[1].textContent = bulletStats?.record?.draw || '0';
+    bulletRecordStats[2].textContent = bulletStats?.record?.loss || '0';
+    
     // Send message to background
     chrome.runtime.sendMessage({
       type: 'calculateStats',
@@ -265,6 +284,7 @@ class ChessAnalyzer {
     // Clear all stats
     popup.querySelector('.blitz-rating').textContent = '-';
     popup.querySelector('.rapid-rating').textContent = '-';
+    popup.querySelector('.bullet-rating').textContent = '-';
     popup.querySelector('.precision').textContent = '-';
     popup.querySelector('.avg-time').textContent = '-';
     

@@ -236,7 +236,7 @@ function displayStats(data) {
             <span class="metric-label">Views</span>
           </div>
         </span>
-        <!-- Similar metrics for views, and last online -->
+        <!-- Similar metrics for friends, views, and last online -->
       </div>
 
       <div class="game-stats">

@@ -13,6 +13,7 @@
 
 .chess-analyzer-popup.visible {
   right: 20px;
+  max-width: 350px;
 }
 
 .popup-header {
@@ -79,9 +80,17 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 16px;
+}
+
+/* Add new class for second row */
+.metrics-grid-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 16px 16px 16px;
 }
 
 .metric-card {
@@ -92,6 +101,21 @@
   background: #f9fafb;
   padding: 12px;
   border-radius: 8px;
+  min-height: 90px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.metric-card-alt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+  overflow: hidden;
 }
 
 .rating-container {
