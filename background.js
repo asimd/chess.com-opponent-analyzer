@@ -165,4 +165,10 @@ function calculatePrecision(games, username) {
   
   if (count === 0) return '-';
   return Math.round(totalAccuracy / count);
-} 
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  if (tab.url.includes("chess.com")) {
+    chrome.tabs.sendMessage(tab.id, { action: "togglePopup" });
+  }
+}); 

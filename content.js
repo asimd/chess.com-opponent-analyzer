@@ -5,6 +5,24 @@ class ChessAnalyzer {
     this.logs = [];
     this.addLog('ChessAnalyzer initialized');
     this.init();
+    
+    // Listen for extension button click
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === "togglePopup") {
+        if (this.popup.classList.contains('visible')) {
+          this.hidePopup();
+        } else {
+          // Get current opponent before showing popup
+          const playerElements = document.querySelectorAll('.user-tagline-username');
+          const players = Array.from(playerElements).map(el => el.textContent.trim());
+          
+          if (players && players.length >= 2) {
+            this.currentOpponent = players[1]; // Set opponent
+            this.fetchOpponentData(this.currentOpponent);
+          }
+        }
+      }
+    });
   }
 
   init() {
