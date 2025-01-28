@@ -4,9 +4,7 @@
   "version": "1.0",
   "description": "Analyzes opponent data on Chess.com matches",
   "permissions": [
-    "activeTab",
-    "storage",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.chess.com/*",
