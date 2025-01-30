@@ -74,3 +74,12 @@ Uses Chess.com's public API endpoints:
 2. Start or join a game
 3. Click the extension icon in your browser toolbar
 4. View your opponent's comprehensive statistics 
+
+
+## Buy Me a Coffee
+
+If you find Opponent Analyzer useful and want to support its development, you can buy me a coffee:
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/asimd)
+
+Your support is greatly appreciated and helps maintain and improve Opponent Analyzer!

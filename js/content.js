@@ -1,33 +1,25 @@
 if (!window.chessAnalyzer) {
   class ChessAnalyzer {
     constructor() {
-      console.log('ChessAnalyzer Constructor - Starting initialization');
       this.popup = null;
       this.currentOpponent = null;    
       
     // Initialize on any chess.com page
     if (window.location.hostname.includes('chess.com')) {
-      console.log('Chess.com domain detected - calling init()');
       this.init();
-    } else {
-      console.log('Not on Chess.com domain');
     }
       
       // Listen for extension button click
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "togglePopup") {
-          console.log('Toggle popup action received');
           
           try {
             const pageCheckResult = this.isChessComPage();
-            console.log('isChessComPage completed with result:', pageCheckResult);
             
             if (!pageCheckResult) {
-              console.log('Not on chess.com game page');
               this.createRedirectOverlay();
               sendResponse({status: 'not_chess_page'});
             } else {
-              console.log('Valid chess.com game page detected');
               if (this.popup && this.popup.classList.contains('visible')) {
                 this.hidePopup();
                 sendResponse({status: 'hidden'});
@@ -38,7 +30,6 @@ if (!window.chessAnalyzer) {
                     this.fetchOpponentData(this.currentOpponent, true);
                     sendResponse({status: 'shown'});
                   } else {
-                    console.log('No players found');
                     this.createRedirectOverlay();
                     sendResponse({status: 'no_players'});
                   }
@@ -55,17 +46,13 @@ if (!window.chessAnalyzer) {
     }
 
     init() {
-      console.log('Init function called');
       // Always create popup
       this.createPopup();
       
       // Start observer if not snoozed
       chrome.storage.local.get(['snoozeUntil'], (result) => {
-        console.log('Checking snooze state:', result);
         if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
-          console.log('Extension is snoozed - observer not started');
         } else {
-          console.log('Starting observer');
           this.observeGameStart();
         }
       });
@@ -221,7 +208,6 @@ if (!window.chessAnalyzer) {
 
       // Load saved preferences
       chrome.storage.local.get(['darkMode', 'snoozeUntil', 'snoozeTime'], (result) => {
-        console.log('Initial dark mode state:', result.darkMode); // Debug log
         if (result.darkMode) {
           darkModeToggle.checked = true;
           popup.classList.add('dark-mode');
@@ -249,8 +235,6 @@ if (!window.chessAnalyzer) {
         } else {
           popup.classList.remove('dark-mode');
         }
-        console.log('Dark mode:', darkModeToggle.checked); // Debug log
-        console.log('Classes:', popup.className); // Debug log
         chrome.storage.local.set({ darkMode: darkModeToggle.checked });
       });
 
@@ -519,11 +503,9 @@ if (!window.chessAnalyzer) {
     }
 
     findPlayers() {
-      console.log('DEBUG - Finding players...');
       
       // Wait for page load
       if (document.readyState !== 'complete') {
-        console.log('DEBUG - Page not fully loaded, waiting...');
         return null;
       }
 
@@ -538,9 +520,7 @@ if (!window.chessAnalyzer) {
           ];
 
           for (const selector of selectors) {
-            console.log(`DEBUG - Trying selector: ${selector}`);
             const elements = document.querySelectorAll(selector);
-            console.log(`DEBUG - Found ${elements.length} elements`);
 
             if (elements.length >= 2) {
               const players = Array.from(elements)
@@ -548,21 +528,18 @@ if (!window.chessAnalyzer) {
                 .filter(text => text && text !== 'Opponent');
 
               if (players.length >= 2) {
-                console.log('DEBUG - Found players:', players);
                 resolve(players);
                 return;
               }
             }
           }
 
-          console.log('DEBUG - No players found');
           resolve(null);
         }, 1000); // 1 second delay
       });
     }
 
     isChessComPage() {
-      console.log('isChessComPage called');
       const isChessDomain = window.location.hostname.includes('chess.com');
       const fullUrl = window.location.href;
       const pathname = window.location.pathname;
@@ -582,16 +559,8 @@ if (!window.chessAnalyzer) {
         hasUsername: fullUrl.includes('?username=')
       };
       
-      console.log('Chess.com Page Check:', {
-        isChessDomain,
-        isGameUrl,
-        fullUrl,
-        pathname,
-        matches
-      });
       
       const result = isChessDomain && isGameUrl;
-      console.log('Final result:', result);
       
       return result;
     }
