@@ -1,60 +1,73 @@
 if (!window.chessAnalyzer) {
   class ChessAnalyzer {
     constructor() {
+      console.log('ChessAnalyzer Constructor - Starting initialization');
       this.popup = null;
       this.currentOpponent = null;    
       
     // Initialize on any chess.com page
     if (window.location.hostname.includes('chess.com')) {
+      console.log('Chess.com domain detected - calling init()');
       this.init();
+    } else {
+      console.log('Not on Chess.com domain');
     }
       
       // Listen for extension button click
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "togglePopup") {
-          // First check if extension is snoozed
-          chrome.storage.local.get(['snoozeUntil'], (result) => {
-            if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
-              const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
-              showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
-              sendResponse({status: 'snoozed'});
-              return;
-            }
-            if (!this.isChessComPage()) {
-              console.log('DEBUG - Not a chess.com page, showing redirect');
+          console.log('Toggle popup action received');
+          
+          try {
+            const pageCheckResult = this.isChessComPage();
+            console.log('isChessComPage completed with result:', pageCheckResult);
+            
+            if (!pageCheckResult) {
+              console.log('Not on chess.com game page');
               this.createRedirectOverlay();
               sendResponse({status: 'not_chess_page'});
-            } else if (this.popup && this.popup.classList.contains('visible')) {
-              this.hidePopup();
-              sendResponse({status: 'hidden'});
             } else {
-              this.findPlayers().then(players => {
-                if (players && players.length >= 2) {
-                  this.currentOpponent = players[1];
-                  this.fetchOpponentData(this.currentOpponent);
-                  sendResponse({status: 'shown'});
-                } else {
-                  this.createRedirectOverlay();
-                  sendResponse({status: 'no_players'});
-                }
-              });
+              console.log('Valid chess.com game page detected');
+              if (this.popup && this.popup.classList.contains('visible')) {
+                this.hidePopup();
+                sendResponse({status: 'hidden'});
+              } else {
+                this.findPlayers().then(players => {
+                  if (players && players.length >= 2) {
+                    this.currentOpponent = players[1];
+                    this.fetchOpponentData(this.currentOpponent, true);
+                    sendResponse({status: 'shown'});
+                  } else {
+                    console.log('No players found');
+                    this.createRedirectOverlay();
+                    sendResponse({status: 'no_players'});
+                  }
+                });
+              }
             }
-          });
-          // Return true to indicate we'll send a response asynchronously
-          return true;
+          } catch (error) {
+            console.error('Error in togglePopup handler:', error);
+            sendResponse({status: 'error', message: error.toString()});
+          }
+          return true; // Keep the message channel open for async response
         }
       });
     }
 
     init() {
-      // Check snooze state before initializing
+      console.log('Init function called');
+      // Always create popup
+      this.createPopup();
+      
+      // Start observer if not snoozed
       chrome.storage.local.get(['snoozeUntil'], (result) => {
+        console.log('Checking snooze state:', result);
         if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
-          // Don't initialize if snoozed
-          return;
+          console.log('Extension is snoozed - observer not started');
+        } else {
+          console.log('Starting observer');
+          this.observeGameStart();
         }
-        this.createPopup();
-        this.observeGameStart();
       });
     }
 
@@ -219,7 +232,7 @@ if (!window.chessAnalyzer) {
         if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
           // Extension is snoozed
           const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
-          showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+          showSnoozeConfirmation(`Opponent analyzer snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
           return;
         }
       });
@@ -244,7 +257,7 @@ if (!window.chessAnalyzer) {
             snoozeTime: snoozeSelect.value 
           }, () => {
             // Show feedback and close popup
-            const feedbackText = `Extension snoozed for ${hours} hour${hours > 1 ? 's' : ''}`;
+            const feedbackText = `Opponent analyzer snoozed for ${hours} hour${hours > 1 ? 's' : ''}`;
             showSnoozeConfirmation(feedbackText);
             this.hidePopup();
           });
@@ -294,10 +307,10 @@ if (!window.chessAnalyzer) {
       });
     }
 
-    async fetchOpponentData(username) {
+    async fetchOpponentData(username, force = true) {
       try {
         this.setLoadingState();
-        this.showPopup();
+        this.showPopup(force);
 
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
@@ -396,11 +409,16 @@ if (!window.chessAnalyzer) {
       popup.querySelector('.last-online').textContent = this.formatLastOnline(profile.last_online);
     }
 
-    showPopup() {
+    showPopup(force = false) {
+      if (force) {
+        this.forceShowPopup();
+        return;
+      }
+      
       chrome.storage.local.get(['snoozeUntil'], (result) => {
         if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
           const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
-          showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+          showSnoozeConfirmation(`Opponent analyzer snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
           return;
         }
         if (this.popup) {
@@ -529,9 +547,38 @@ if (!window.chessAnalyzer) {
     }
 
     isChessComPage() {
-      return window.location.hostname.includes('chess.com') &&
-        (window.location.pathname.includes('/game/') ||
-        window.location.pathname.includes('/play'));
+      console.log('isChessComPage called');
+      const isChessDomain = window.location.hostname.includes('chess.com');
+      const fullUrl = window.location.href;
+      const pathname = window.location.pathname;
+      
+      // More comprehensive game URL detection
+      const isGameUrl = pathname.includes('/game/live/') || 
+                       pathname.includes('/live/') ||
+                       pathname.includes('/play/online/') ||
+                       pathname.includes('/play/computer/') ||
+                       fullUrl.includes('?username=');
+      
+      const matches = {
+        gameLive: pathname.includes('/game/live/'),
+        live: pathname.includes('/live/'),
+        playOnline: pathname.includes('/play/online/'),
+        playComputer: pathname.includes('/play/computer/'),
+        hasUsername: fullUrl.includes('?username=')
+      };
+      
+      console.log('Chess.com Page Check:', {
+        isChessDomain,
+        isGameUrl,
+        fullUrl,
+        pathname,
+        matches
+      });
+      
+      const result = isChessDomain && isGameUrl;
+      console.log('Final result:', result);
+      
+      return result;
     }
 
     showGuestMessage() {
@@ -554,6 +601,14 @@ if (!window.chessAnalyzer) {
       
       const recordStats = popup.querySelectorAll('.record-stats span');
       recordStats.forEach(stat => stat.textContent = 'N/A');
+    }
+
+    forceShowPopup() {
+      if (this.popup) {
+        this.popup.classList.add('visible');
+        // Reset settings menu state
+        this.popup.querySelector('.settings-menu').classList.remove('visible');
+      }
     }
   }
   
