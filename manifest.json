@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Chess.com Opponent Analyzer",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Analyzes opponent data on Chess.com matches",
+  "author": "delalic.asim@gmail.com",
+  "homepage_url": "https://github.com/asimd/chess.com-opponent-analyzer/",
   "permissions": [
     "storage",
     "tabs"

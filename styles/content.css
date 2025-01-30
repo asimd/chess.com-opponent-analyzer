@@ -760,7 +760,7 @@ html body .dark-mode select:hover {
 /* Snooze confirmation styles */
 .snooze-confirmation {
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   background: #4CAF50;
   color: white;
@@ -776,12 +776,24 @@ html body .dark-mode select:hover {
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(10px); }
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 

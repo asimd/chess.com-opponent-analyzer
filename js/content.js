@@ -92,6 +92,7 @@ if (!window.chessAnalyzer) {
                 <option value="0">Off</option>
                 <option value="1">1 hour</option>
                 <option value="4">4 hours</option>
+                <option value="-1">Indefinitely</option>
               </select>
             </label>
           </div>
@@ -219,7 +220,7 @@ if (!window.chessAnalyzer) {
       const snoozeSelect = popup.querySelector('#snoozeTime');
 
       // Load saved preferences
-      chrome.storage.local.get(['darkMode', 'snoozeUntil'], (result) => {
+      chrome.storage.local.get(['darkMode', 'snoozeUntil', 'snoozeTime'], (result) => {
         console.log('Initial dark mode state:', result.darkMode); // Debug log
         if (result.darkMode) {
           darkModeToggle.checked = true;
@@ -230,10 +231,15 @@ if (!window.chessAnalyzer) {
         }
         
         if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
-          // Extension is snoozed
-          const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
-          showSnoozeConfirmation(`Opponent analyzer snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
-          return;
+          snoozeSelect.value = result.snoozeTime || '0';
+          if (result.snoozeTime === '-1') {
+            showSnoozeConfirmation('Opponent analyzer snoozed indefinitely');
+          } else {
+            const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
+            showSnoozeConfirmation(`Opponent analyzer snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+          }
+        } else {
+          snoozeSelect.value = '0';
         }
       });
 
@@ -256,9 +262,18 @@ if (!window.chessAnalyzer) {
             snoozeUntil,
             snoozeTime: snoozeSelect.value 
           }, () => {
-            // Show feedback and close popup
             const feedbackText = `Opponent analyzer snoozed for ${hours} hour${hours > 1 ? 's' : ''}`;
             showSnoozeConfirmation(feedbackText);
+            this.hidePopup();
+          });
+        } else if (hours === -1) {
+          // Set a very far future date (approximately 100 years)
+          const snoozeUntil = Date.now() + (1000 * 365 * 24 * 60 * 60 * 1000);
+          chrome.storage.local.set({ 
+            snoozeUntil,
+            snoozeTime: snoozeSelect.value 
+          }, () => {
+            showSnoozeConfirmation('Opponent analyzer snoozed indefinitely');
             this.hidePopup();
           });
         } else {
