@@ -1,31 +1,27 @@
 # Chess.com Opponent Analyzer
 
-![image](https://github.com/user-attachments/assets/8717b009-e6aa-4649-a7dd-4b07e765377e)
-
-A Chrome extension that provides instant analysis of your opponent's statistics during Chess.com games. Get valuable insights about your opponent's playing style, ratings, and performance metrics.
-
-## Features
-
-- 🏃‍♂️ **Real-time Analysis**: Instantly view opponent stats when a game starts
-- 📊 **Comprehensive Stats**: View Blitz, Rapid, and Bullet ratings with win/loss records
-- 📈 **Performance Metrics**: See precision and average move time from last 20 games
-- 🌍 **Player Details**: Country, join date, followers, and league information
-- 🎯 **Auto-Detection**: Automatically detects new opponents during gameplay
-- 💫 **Smooth UI**: Clean, modern interface with smooth animations
+A Chrome extension that provides instant analysis of your opponent's statistics during Chess.com games.
 
 ## Installation
 
-1. Download or clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right
-4. Click "Load unpacked" and select the extension directory
+1. Download this extension from the Chrome Web Store
+2. Click "Add to Chrome"
+3. That's it! Visit Chess.com and start analyzing
 
 ## Usage
 
-1. Visit [Chess.com](https://chess.com)
+1. Visit Chess.com
 2. Start or join a game
-3. Click the extension icon in your browser toolbar
-4. View your opponent's comprehensive statistics
+3. Click the extension icon
+4. View your opponent's stats
+
+## Features
+
+- Real-time opponent analysis
+- Comprehensive statistics
+- Performance metrics
+- Dark mode support
+- Guest player detection
 
 ## Technical Details
 

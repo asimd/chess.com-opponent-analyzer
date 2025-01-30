@@ -4,39 +4,58 @@ if (!window.chessAnalyzer) {
       this.popup = null;
       this.currentOpponent = null;    
       
-      // Check if we're on chess.com first
-      if (!window.location.href.includes('chess.com')) {
-        this.createRedirectOverlay();
-        return; // Don't initialize other features
-      }
-      
+    // Initialize on any chess.com page
+    if (window.location.hostname.includes('chess.com')) {
       this.init();
+    }
       
       // Listen for extension button click
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "togglePopup") {
-          if (!window.location.href.includes('chess.com')) {
-            // Create and show overlay for non-chess.com sites
-            this.createRedirectOverlay();
-          } else if (this.popup && this.popup.classList.contains('visible')) {
-            this.hidePopup();
-          } else {
-            // Get current opponent before showing popup
-            const playerElements = document.querySelectorAll('.user-tagline-username');
-            const players = Array.from(playerElements).map(el => el.textContent.trim());
-            
-            if (players && players.length >= 2) {
-              this.currentOpponent = players[1]; // Set opponent
-              this.fetchOpponentData(this.currentOpponent);
+          // First check if extension is snoozed
+          chrome.storage.local.get(['snoozeUntil'], (result) => {
+            if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
+              const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
+              showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+              sendResponse({status: 'snoozed'});
+              return;
             }
-          }
+            if (!this.isChessComPage()) {
+              console.log('DEBUG - Not a chess.com page, showing redirect');
+              this.createRedirectOverlay();
+              sendResponse({status: 'not_chess_page'});
+            } else if (this.popup && this.popup.classList.contains('visible')) {
+              this.hidePopup();
+              sendResponse({status: 'hidden'});
+            } else {
+              this.findPlayers().then(players => {
+                if (players && players.length >= 2) {
+                  this.currentOpponent = players[1];
+                  this.fetchOpponentData(this.currentOpponent);
+                  sendResponse({status: 'shown'});
+                } else {
+                  this.createRedirectOverlay();
+                  sendResponse({status: 'no_players'});
+                }
+              });
+            }
+          });
+          // Return true to indicate we'll send a response asynchronously
+          return true;
         }
       });
     }
 
     init() {
-      this.createPopup();
-      this.observeGameStart();
+      // Check snooze state before initializing
+      chrome.storage.local.get(['snoozeUntil'], (result) => {
+        if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
+          // Don't initialize if snoozed
+          return;
+        }
+        this.createPopup();
+        this.observeGameStart();
+      });
     }
 
     createPopup() {
@@ -45,7 +64,24 @@ if (!window.chessAnalyzer) {
       popup.innerHTML = `
         <div class="popup-header">
           <h3>Opponent Analysis</h3>
-          <button class="close-button">×</button>
+          <button class="settings-toggle">⚙️</button>
+        </div>
+        <div class="settings-menu">
+          <div class="settings-title">Settings</div>
+          <div class="settings-content">
+            <label class="setting-item">
+              <span>Dark Mode</span>
+              <input type="checkbox" id="darkMode">
+            </label>
+            <label class="setting-item">
+              <span>Snooze</span>
+              <select id="snoozeTime">
+                <option value="0">Off</option>
+                <option value="1">1 hour</option>
+                <option value="4">4 hours</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div class="popup-content">
           <div class="player-info">
@@ -53,7 +89,7 @@ if (!window.chessAnalyzer) {
               <div class="player-details">
                   <div class="username-row">
                       <img class="country-flag" src="" alt="Country flag">
-                      <span class="username" style="color: #262626;"></span>
+                      <span class="username""></span>
                   </div>
                   <div class="join-date" style="font-size: 12px; color: #6b7280;"></div>
               </div>
@@ -106,7 +142,7 @@ if (!window.chessAnalyzer) {
                 <div class="metric-sublabel">(last 20 games)</div>
               </div>
             </div>
-          </div>
+          </div>    
           <div class="stats-row">
             <div class="stat-item">
               <div class="stat-icon">👤</div>
@@ -123,6 +159,11 @@ if (!window.chessAnalyzer) {
               <div class="stat-value last-online">-</div>
               <div class="stat-label">Last Activity</div>
             </div>
+          </div>
+          <div class="acknowledge-section">
+            <button class="acknowledge-btn" id="acknowledgeStats">
+              Accept
+            </button>
           </div>
         </div>
       `;
@@ -146,8 +187,78 @@ if (!window.chessAnalyzer) {
           }
       });
 
-      popup.querySelector('.close-button').addEventListener('click', () => {
-          this.hidePopup();
+      const settingsToggle = popup.querySelector('.settings-toggle');
+      const settingsMenu = popup.querySelector('.settings-menu');
+
+      settingsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsMenu.classList.toggle('visible');
+      });
+
+      // Close settings when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) {
+          settingsMenu.classList.remove('visible');
+        }
+      });
+
+      const darkModeToggle = popup.querySelector('#darkMode');
+      const snoozeSelect = popup.querySelector('#snoozeTime');
+
+      // Load saved preferences
+      chrome.storage.local.get(['darkMode', 'snoozeUntil'], (result) => {
+        console.log('Initial dark mode state:', result.darkMode); // Debug log
+        if (result.darkMode) {
+          darkModeToggle.checked = true;
+          popup.classList.add('dark-mode');
+        } else {
+          darkModeToggle.checked = false;
+          popup.classList.remove('dark-mode');
+        }
+        
+        if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
+          // Extension is snoozed
+          const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
+          showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+          return;
+        }
+      });
+
+      darkModeToggle.addEventListener('change', () => {
+        if (darkModeToggle.checked) {
+          popup.classList.add('dark-mode');
+        } else {
+          popup.classList.remove('dark-mode');
+        }
+        console.log('Dark mode:', darkModeToggle.checked); // Debug log
+        console.log('Classes:', popup.className); // Debug log
+        chrome.storage.local.set({ darkMode: darkModeToggle.checked });
+      });
+
+      snoozeSelect.addEventListener('change', () => {
+        const hours = parseInt(snoozeSelect.value);
+        if (hours > 0) {
+          const snoozeUntil = Date.now() + (hours * 60 * 60 * 1000);
+          chrome.storage.local.set({ 
+            snoozeUntil,
+            snoozeTime: snoozeSelect.value 
+          }, () => {
+            // Show feedback and close popup
+            const feedbackText = `Extension snoozed for ${hours} hour${hours > 1 ? 's' : ''}`;
+            showSnoozeConfirmation(feedbackText);
+            this.hidePopup();
+          });
+        } else {
+          chrome.storage.local.remove(['snoozeUntil', 'snoozeTime'], () => {
+            showSnoozeConfirmation('Snooze disabled');
+          });
+        }
+      });
+
+      const acknowledgeBtn = popup.querySelector('#acknowledgeStats');
+      acknowledgeBtn.addEventListener('click', () => {
+        this.hidePopup();
+        settingsMenu.classList.remove('visible');
       });
     }
 
@@ -286,7 +397,18 @@ if (!window.chessAnalyzer) {
     }
 
     showPopup() {
-      this.popup.classList.add('visible');
+      chrome.storage.local.get(['snoozeUntil'], (result) => {
+        if (result.snoozeUntil && result.snoozeUntil > Date.now()) {
+          const remainingTime = Math.ceil((result.snoozeUntil - Date.now()) / (1000 * 60 * 60));
+          showSnoozeConfirmation(`Extension snoozed for ${remainingTime} more hour${remainingTime > 1 ? 's' : ''}`);
+          return;
+        }
+        if (this.popup) {
+          this.popup.classList.add('visible');
+          // Reset settings menu state
+          this.popup.querySelector('.settings-menu').classList.remove('visible');
+        }
+      });
     }
 
     hidePopup() {
@@ -341,36 +463,116 @@ if (!window.chessAnalyzer) {
     }
 
     createRedirectOverlay() {
-      // Don't create overlay if it already exists
-      if (document.querySelector('.chess-analyzer-mini-popup')) return;
-      
-      const popup = document.createElement('div');
-      popup.className = 'chess-analyzer-mini-popup';
-      popup.innerHTML = `
-        <div class="mini-popup-content">
-          <div class="mini-popup-header">
-            <div class="mini-popup-icon">♟️</div>
-            <div class="mini-popup-title">
-              <h3>Chess.com Opponent Analyzer</h3>
-              <p>This extension only works on Chess.com game pages</p>
-            </div>
-          </div>
-          <a href="https://chess.com/play" class="mini-redirect-button">
-            <span class="button-icon">▶️</span>
+      const overlay = document.createElement('div');
+      overlay.className = 'chess-analyzer-overlay';
+      overlay.innerHTML = `
+        <div class="overlay-card">
+          <h2>Chess.com Opponent Analyzer</h2>
+          <p>This extension only works on Chess.com game pages.</p>
+          <a href="https://chess.com/play" class="redirect-button" target="_blank">
             Play on Chess.com
           </a>
         </div>
       `;
-      
-      document.body.appendChild(popup);
 
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        popup.classList.add('fade-out');
-        setTimeout(() => popup.remove(), 300);
-      }, 5000);
+      document.body.appendChild(overlay);
+
+      // Remove overlay when clicking outside the card
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.remove();
+        }
+      });
+    }
+
+    findPlayers() {
+      console.log('DEBUG - Finding players...');
+      
+      // Wait for page load
+      if (document.readyState !== 'complete') {
+        console.log('DEBUG - Page not fully loaded, waiting...');
+        return null;
+      }
+
+      // Add a small delay to ensure dynamic content is loaded
+      return new Promise(resolve => {
+        setTimeout(() => {
+          // Try different selectors in order of specificity
+          const selectors = [
+            '.user-username-component.user-tagline-username',
+            '.user-tagline-username',
+            '.user-username-white.user-tagline-username, .user-username-black.user-tagline-username'
+          ];
+
+          for (const selector of selectors) {
+            console.log(`DEBUG - Trying selector: ${selector}`);
+            const elements = document.querySelectorAll(selector);
+            console.log(`DEBUG - Found ${elements.length} elements`);
+
+            if (elements.length >= 2) {
+              const players = Array.from(elements)
+                .map(el => el.textContent.trim())
+                .filter(text => text && text !== 'Opponent');
+
+              if (players.length >= 2) {
+                console.log('DEBUG - Found players:', players);
+                resolve(players);
+                return;
+              }
+            }
+          }
+
+          console.log('DEBUG - No players found');
+          resolve(null);
+        }, 1000); // 1 second delay
+      });
+    }
+
+    isChessComPage() {
+      return window.location.hostname.includes('chess.com') &&
+        (window.location.pathname.includes('/game/') ||
+        window.location.pathname.includes('/play'));
+    }
+
+    showGuestMessage() {
+      const popup = this.popup;
+      popup.querySelector('.avatar').src = 'https://www.chess.com/bundles/web/images/user-image.svg';
+      popup.querySelector('.username').textContent = 'Guest Player';
+      popup.querySelector('.country-flag').style.display = 'none';
+      popup.querySelector('.join-date').textContent = 'Guest accounts have limited data';
+      
+      const statsToHide = [
+        '.blitz-rating', '.rapid-rating', '.bullet-rating',
+        '.precision', '.avg-time', '.followers-count',
+        '.league-rank', '.last-online'
+      ];
+      
+      statsToHide.forEach(selector => {
+        const el = popup.querySelector(selector);
+        if (el) el.textContent = 'N/A';
+      });
+      
+      const recordStats = popup.querySelectorAll('.record-stats span');
+      recordStats.forEach(stat => stat.textContent = 'N/A');
     }
   }
   
   window.chessAnalyzer = new ChessAnalyzer();
+}
+
+// Add this new function
+function showSnoozeConfirmation(message) {
+  // Remove any existing confirmation
+  const existing = document.querySelector('.snooze-confirmation');
+  if (existing) existing.remove();
+
+  const confirmation = document.createElement('div');
+  confirmation.className = 'snooze-confirmation';
+  confirmation.textContent = message;
+  document.body.appendChild(confirmation);
+  
+  setTimeout(() => {
+    confirmation.classList.add('fade-out');
+    setTimeout(() => confirmation.remove(), 300);
+  }, 2000);
 }

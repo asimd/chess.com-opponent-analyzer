@@ -57,18 +57,22 @@
   flex: 1;
 }
 
-.username {
-  color: #262626 !important;
+/* Base username styles (light mode) */
+html body .username {
+  color: #1f2937;
   font-weight: 600;
   font-size: 16px;
-  cursor: pointer !important;
+}
+
+/* Dark mode override with maximum specificity */
+html body .dark-mode .username {
+  color: #ffffff !important;
 }
 
 .username-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
 }
 
 .country-flag {
@@ -81,41 +85,33 @@
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
   padding: 16px;
+  max-width: 100%;
 }
 
 /* Add new class for second row */
 .metrics-grid-row2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 8px;
   padding: 0 16px 16px 16px;
+  max-width: 100%;
 }
 
-.metric-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background: #f9fafb;
-  padding: 12px;
-  border-radius: 8px;
-  min-height: 90px;
-  width: 100%;
-  overflow: hidden;
-}
-
+/* Base styles for light mode */
+.metric-card,
 .metric-card-alt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background: #f9fafb;
-  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  width: 100%;
-  overflow: hidden;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.metric-value,
+.stat-value {
+  color: #1f2937;
 }
 
 .rating-container {
@@ -154,12 +150,6 @@
   color: #991b1b;
 }
 
-.metric-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
 .metric-label {
   font-size: 0.875rem;
   color: #6b7280;
@@ -188,11 +178,6 @@
   margin-left: 9px;
 }
 
-.stat-value {
-  font-weight: 600;
-  color: #111827;
-}
-
 .stat-label {
   font-size: 0.75rem;
   color: #6b7280;
@@ -207,8 +192,15 @@ span#username {
   color: inherit;
 }
 
-.username-link:hover .username {
+/* Username hover styles for light mode */
+html body .username-link:hover .username {
   color: #0077cc !important;
+  text-decoration: underline;
+}
+
+/* Username hover styles for dark mode */
+html body .dark-mode .username-link:hover .username {
+  color: #4CAF50 !important;
   text-decoration: underline;
 }
 
@@ -348,19 +340,19 @@ span#username {
 }
 
 .redirect-button {
-  background: #4CAF50;
+  display: inline-block;
+  background: linear-gradient(45deg, #43A047, #4CAF50);
   color: white;
-  border: none;
+  text-decoration: none;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 16px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
 }
 
 .redirect-button:hover {
-  background: #43A047;
   transform: translateY(-1px);
 }
 
@@ -457,3 +449,339 @@ span#username {
     opacity: 1;
   }
 }
+
+/* Settings Menu Styles */
+.popup-settings {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.settings-toggle {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.settings-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.settings-menu {
+  position: absolute;
+  top: 50px;
+  right: 16px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 12px;
+  min-width: 200px;
+  display: none;
+  z-index: 10000;
+  border: 1px solid #e5e7eb;
+}
+
+.settings-title {
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-content {
+  padding: 12px 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: #4b5563;
+}
+
+.setting-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.setting-item select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Full-width CTA Button */
+.acknowledge-button {
+  margin-top: 20px;
+  padding: 0 16px 16px;
+}
+
+.full-width-cta {
+  width: 100%;
+  background: linear-gradient(45deg, #43A047, #4CAF50);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.full-width-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Dark Mode Styles */
+body .dark-mode.chess-analyzer-popup {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+body .dark-mode .metric-card,
+body .dark-mode .metric-card-alt {
+  background: #2d2d2d;
+  border-color: #3d3d3d;
+}
+
+body .dark-mode .metric-value,
+body .dark-mode .stat-value {
+  color: #ffffff;
+}
+
+body .dark-mode .settings-menu {
+  background: #1e1e1e;
+  border-color: #2d2d2d;
+}
+
+body .dark-mode .metric-label,
+body .dark-mode .stat-label,
+body .dark-mode .metric-sublabel {
+  color: #9ca3af;
+}
+
+body .dark-mode .join-date {
+  color: #9ca3af !important;
+}
+
+body .dark-mode .stat-icon {
+  color: #9ca3af;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Add after line 303 */
+.acknowledge-section {
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.acknowledge-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(45deg, #43A047, #4CAF50);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.acknowledge-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.settings-container {
+  position: relative;
+}
+
+.settings-toggle {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 12px;
+  min-width: 200px;
+  display: none;
+}
+
+.settings-menu.visible {
+  display: block;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #6b7280;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-size: 18px;
+}
+
+.settings-toggle:hover {
+  background-color: #f3f4f6;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 50px;
+  right: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 12px;
+  min-width: 200px;
+  display: none;
+  z-index: 10000;
+  border: 1px solid #e5e7eb;
+}
+
+.settings-menu.visible {
+  display: block;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+/* Reset any accidentally applied dark mode styles */
+.metric-card:not(.dark-mode *),
+.metric-card-alt:not(.dark-mode *) {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+
+.metric-value:not(.dark-mode *),
+.stat-value:not(.dark-mode *) {
+  color: #1f2937;
+}
+
+.settings-menu:not(.dark-mode *) {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+/* Base settings-title styles (light mode) */
+html body .settings-title:not(.dark-mode *) {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Dark mode override with maximum specificity */
+html body .dark-mode .settings-title {
+  color: #ffffff !important;
+}
+
+/* Base select styles (light mode) */
+html body select:not(.dark-mode *) {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* Dark mode override with maximum specificity */
+html body .dark-mode select {
+  background: #2d2d2d !important;
+  color: #ffffff !important;
+  border-color: #3d3d3d !important;
+}
+
+/* Dark mode hover state */
+html body .dark-mode select:hover {
+  border-color: #4d4d4d !important;
+}
+
+/* Snooze confirmation styles */
+.snooze-confirmation {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-out;
+  z-index: 10000;
+}
+
+.snooze-confirmation.fade-out {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

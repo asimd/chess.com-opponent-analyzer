@@ -1,15 +1,9 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'calculateStats') {
+  if (request.type === 'calculateStats' && sender.tab.url.includes('chess.com')) {
     try {      
       const moveTimeCalc = calculateAverageMoveTime(request.games);
       const precision = calculatePrecision(request.games, request.username);
       
-      // Send the detailed logs to content script
-      chrome.tabs.sendMessage(sender.tab.id, {
-        type: 'debugLog',
-        data: moveTimeCalc.logs
-      });
-
       sendResponse({
         precision,
         avgMoveTime: moveTimeCalc.avgMoveTime
