@@ -49,8 +49,7 @@ Uses Chess.com's public API endpoints:
 ## Development
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- Chrome Browser
+- Internet Browser
 
 ### Setup
 
