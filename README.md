@@ -2,6 +2,8 @@
 
 A Chrome extension that provides instant analysis of your opponent's statistics during Chess.com games.
 
+Extension is publicly available at https://chromewebstore.google.com/detail/chesscom-opponent-analyze/apeckdjjlkpaadkdbikdgipjfijjfkgg?hl=en&authuser=0
+
 ## Installation
 
 1. Download this extension from the Chrome Web Store
